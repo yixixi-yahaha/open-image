@@ -5,7 +5,7 @@
 项目不会内置 API 地址或 API 密钥。你可以把同一份 `skills/open-image` 目录安装到不同 Agent 中，并在当前机器上统一配置 API。
 
 - GitHub：<https://github.com/yixixi-yahaha/open-image>
-- 当前稳定版：`v1.0.1`
+- 当前稳定版：`v1.0.2`
 - 首次正式版：`v1.0.0`
 - 支持系统：Windows、macOS、Linux
 - Python：3.11 或更高版本
@@ -58,7 +58,7 @@ GET  /tasks/{task_id}
 这种方式适用于支持从 GitHub 读取 Agent Skill 的 Codex、Claude Code、Hermes、DeepSeek Harness 等 Agent。新建一个对话，发送下面这段话：
 
 ```text
-请从 https://github.com/yixixi-yahaha/open-image/tree/v1.0.1/skills/open-image 安装 open-image Skill。
+请从 https://github.com/yixixi-yahaha/open-image/tree/v1.0.2/skills/open-image 安装 open-image Skill。
 它是一个跨平台、兼容 OpenAI Images API 的生图 Skill，请保留整个 skills/open-image 目录及其 scripts/open_image.py 文件。
 安装完成后请告诉我 Skill 文件的位置，不要要求我在聊天中发送 API 密钥。
 ```
@@ -76,14 +76,14 @@ GET  /tasks/{task_id}
 #### 使用 `npx skills` 安装到自动识别的 Agent
 
 ```bash
-npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.1/skills/open-image" --global --yes
+npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.2/skills/open-image" --global --yes
 ```
 
 只安装到指定 Agent 时，可以使用 `--agent`。具体 Agent 名称取决于当前版本的安装器：
 
 ```bash
-npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.1/skills/open-image" --global --agent claude-code --yes
-npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.1/skills/open-image" --global --agent codex --yes
+npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.2/skills/open-image" --global --agent claude-code --yes
+npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.2/skills/open-image" --global --agent codex --yes
 ```
 
 先查看当前安装器支持的 Agent：
@@ -92,14 +92,14 @@ npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.1/skills/o
 npx skills add --help
 ```
 
-`npx skills` 支持从固定版本标签安装；使用 `v1.0.1` 可以避免安装命令随着 `main` 分支变化。
+`npx skills` 支持从固定版本标签安装；使用 `v1.0.2` 可以避免安装命令随着 `main` 分支变化。
 
 #### 手动安装：适用于任何支持 `SKILL.md` 的 Agent
 
 先克隆仓库：
 
 ```bash
-git clone --branch v1.0.1 --depth 1 https://github.com/yixixi-yahaha/open-image.git
+git clone --branch v1.0.2 --depth 1 https://github.com/yixixi-yahaha/open-image.git
 ```
 
 需要复制的完整目录是：

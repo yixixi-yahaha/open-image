@@ -21,7 +21,7 @@ SKILL_ROOT = ROOT / "skills" / "open-image"
 SCRIPT_PATH = SKILL_ROOT / "scripts" / "open_image.py"
 CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 PUBLIC_FILES = (ROOT / "README.md", SKILL_ROOT / "SKILL.md", SCRIPT_PATH)
-EXPECTED_STABLE_VERSION = "v1.0.1"
+EXPECTED_STABLE_VERSION = "v1.0.2"
 PNG_BYTES = b"\x89PNG\r\n\x1a\nexample"
 
 
@@ -739,8 +739,8 @@ class PackagedSkillTests(unittest.TestCase):
         for expected in (
             "--output-dir",
             "Agent Skills",
-            "/tree/v1.0.1/skills/open-image",
-                        "v1.0.1",
+            "/tree/v1.0.2/skills/open-image",
+                        "v1.0.2",
         ):
             self.assertIn(expected, readme + skill)
 
@@ -938,7 +938,7 @@ class PackagedSkillTests(unittest.TestCase):
             "AsSecureString",
             "干净卸载",
             "请彻底卸载 open-image Skill",
-            "git clone --branch v1.0.1",
+            "git clone --branch v1.0.2",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, content)

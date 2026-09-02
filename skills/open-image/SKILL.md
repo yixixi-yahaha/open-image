@@ -1,7 +1,7 @@
 ---
 name: open-image
 description: Generate images through a configurable OpenAI-compatible API.
-version: 1.0.1
+version: 1.0.2
 author: yixixi-yahaha (yixixi-yahaha), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -13,7 +13,7 @@ metadata:
 
 # Open Image Skill
 
-当前技能版本：`v1.0.1`。
+当前技能版本：`v1.0.2`。
 
 使用同级 `scripts/open_image.py` 调用用户配置的 OpenAI-compatible Image API。该目录遵循 Agent Skills 开放格式，可由 Codex、Claude Code、Hermes、DeepSeek Harness 或其他支持 `SKILL.md` 的 Agent 加载。客户端只依赖 Python 标准库，不调用旧 MCP 服务，也不使用固定的本机绝对路径。
 
