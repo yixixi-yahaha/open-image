@@ -1,7 +1,7 @@
 ---
 name: open-image
 description: Generate images through a configurable OpenAI-compatible API.
-version: 1.0.0
+version: 1.0.1
 author: yixixi-yahaha (yixixi-yahaha), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -13,9 +13,9 @@ metadata:
 
 # Open Image Skill
 
-当前技能版本：`v1.0.0`。
+当前技能版本：`v1.0.1`。
 
-使用同级 `scripts/open_image.py` 调用用户配置的 OpenAI-compatible Image API。客户端只依赖 Python 标准库，不调用旧 MCP 服务，也不使用固定的本机绝对路径。
+使用同级 `scripts/open_image.py` 调用用户配置的 OpenAI-compatible Image API。该目录遵循 Agent Skills 开放格式，可由 Codex、Claude Code、Hermes、DeepSeek Harness 或其他支持 `SKILL.md` 的 Agent 加载。客户端只依赖 Python 标准库，不调用旧 MCP 服务，也不使用固定的本机绝对路径。
 
 ## When to Use
 
@@ -26,7 +26,7 @@ metadata:
 
 ## Prerequisites
 
-- Python 3.11 或更高版本；如果当前环境没有合适的 Python，可在 Codex Desktop 使用 `load_workspace_dependencies` 获取运行时。
+- Python 3.11 或更高版本；如果宿主 Agent 提供依赖加载工具，可使用该工具获取 Python 运行时。
 - `OPEN_IMAGE_API_KEY`：API Bearer 密钥。
 - `OPEN_IMAGE_BASE_URL`：API 根地址；必须显式配置，没有默认值。
 - API 地址必须是无用户信息、无查询参数和 Fragment 的 HTTPS 443 地址；允许任意 HTTPS 主机，末尾 `/` 会自动去除。
@@ -40,6 +40,14 @@ PowerShell 配置示例：
 [Environment]::SetEnvironmentVariable("OPEN_IMAGE_API_KEY", $plainKey, "User")
 [Environment]::SetEnvironmentVariable("OPEN_IMAGE_BASE_URL", "https://api.example.com/v1", "User")
 ```
+
+## Agent and OS Compatibility
+
+- Codex、Claude Code、Hermes、DeepSeek Harness 等宿主只需要加载此目录中的 `SKILL.md`。
+- 运行脚本时使用宿主 Agent 对应的 shell/terminal 工具；不要假设 PowerShell、bash 或某个 Agent 专有工具。
+- Windows 使用 `python` 或 `py -3`；macOS/Linux 使用 `python3`。路径由 Agent 根据当前系统生成，不要硬编码其他用户的路径。
+- 脚本使用 Python 标准库、`pathlib` 和 HTTPS 请求，未使用 POSIX-only 或 Windows-only API。
+- 如果宿主 Agent 不支持自动发现 Skill，按 README 的手动安装方式把整个 `open-image` 目录复制到它的 Skill 根目录。
 
 ## How to Run
 

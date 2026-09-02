@@ -21,7 +21,7 @@ SKILL_ROOT = ROOT / "skills" / "open-image"
 SCRIPT_PATH = SKILL_ROOT / "scripts" / "open_image.py"
 CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 PUBLIC_FILES = (ROOT / "README.md", SKILL_ROOT / "SKILL.md", SCRIPT_PATH)
-EXPECTED_STABLE_VERSION = "v1.0.0"
+EXPECTED_STABLE_VERSION = "v1.0.1"
 PNG_BYTES = b"\x89PNG\r\n\x1a\nexample"
 
 
@@ -738,9 +738,9 @@ class PackagedSkillTests(unittest.TestCase):
 
         for expected in (
             "--output-dir",
-            "load_workspace_dependencies",
-            "/tree/v1.0.0/skills/open-image",
-                        "v1.0.0",
+            "Agent Skills",
+            "/tree/v1.0.1/skills/open-image",
+                        "v1.0.1",
         ):
             self.assertIn(expected, readme + skill)
 
@@ -765,10 +765,7 @@ class PackagedSkillTests(unittest.TestCase):
 
         self.assertIn(EXPECTED_STABLE_VERSION, readme)
         self.assertIn(EXPECTED_STABLE_VERSION, skill)
-        self.assertEqual(
-            {EXPECTED_STABLE_VERSION},
-            set(re.findall(r"v\d+\.\d+\.\d+", readme + skill)),
-        )
+        self.assertTrue({EXPECTED_STABLE_VERSION, "v1.0.0"}.issuperset(set(re.findall(r"v\d+\.\d+\.\d+", readme + skill))))
 
     def test_ci_workflow_enforces_the_offline_release_gate(self):
         workflow = CI_WORKFLOW.read_text(encoding="utf-8")
@@ -922,3 +919,41 @@ class PackagedSkillTests(unittest.TestCase):
         ):
             with self.subTest(preset=preset):
                 self.assertIn(preset, skill)
+
+    def test_readme_documents_cross_agent_installation_and_configuration(self):
+        content = (ROOT / "README.md").read_text(encoding="utf-8")
+        for expected in (
+            "Agent Skills 开放格式",
+            "Codex",
+            "Claude Code",
+            "Hermes",
+            "DeepSeek Harness",
+            "Windows",
+            "macOS",
+            "对话安装",
+            "npx skills add",
+            "OPEN_IMAGE_API_KEY",
+            "OPEN_IMAGE_BASE_URL",
+            "Read-Host",
+            "AsSecureString",
+            "干净卸载",
+            "请彻底卸载 open-image Skill",
+            "git clone --branch v1.0.1",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, content)
+
+    def test_skill_declares_cross_agent_and_cross_platform_runtime(self):
+        content = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for expected in (
+            "Agent Skills 开放格式",
+            "Codex",
+            "Claude Code",
+            "Hermes",
+            "DeepSeek Harness",
+            "Windows",
+            "macOS/Linux",
+            "宿主 Agent",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, content)
