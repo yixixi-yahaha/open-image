@@ -1,15 +1,55 @@
-# Open Image
+<div align="center">
 
-`open-image` 是一个遵循 [Agent Skills 开放格式](https://agentskills.io/) 的跨 Agent 生图 Skill。它使用仅依赖 Python 标准库的客户端，调用用户自行配置的 OpenAI-compatible Image API，支持 Codex、Claude Code、Hermes、DeepSeek Harness 以及其他能够加载 `SKILL.md` 的 Agent。
+<h1>Open Image</h1>
 
-项目不会内置 API 地址或 API 密钥。你可以把同一份 `skills/open-image` 目录安装到不同 Agent 中，并在当前机器上统一配置 API。
+<p>遵循 Agent Skills 开放格式 · 跨 Agent、跨平台的 OpenAI-compatible 图像生成 Skill</p>
 
-- GitHub：<https://github.com/yixixi-yahaha/open-image>
-- 当前稳定版：`v1.0.2`
-- 首次正式版：`v1.0.0`
-- 支持系统：Windows、macOS、Linux
-- Python：3.11 或更高版本
-- 依赖：仅 Python 标准库，不需要额外 Python 包或常驻 MCP 服务
+<p>
+  <a href="https://github.com/yixixi-yahaha/open-image/actions/workflows/ci.yml"><img src="https://github.com/yixixi-yahaha/open-image/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
+  <a href="https://github.com/yixixi-yahaha/open-image/releases"><img src="https://img.shields.io/github/v/release/yixixi-yahaha/open-image?label=release" alt="Latest Release"></a>
+  <a href="https://github.com/yixixi-yahaha/open-image/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%2B-3776AB.svg" alt="Python 3.11+"></a>
+  <a href="https://agentskills.io/"><img src="https://img.shields.io/badge/Agent%20Skills-compatible-7C3AED.svg" alt="Agent Skills compatible"></a>
+</p>
+
+</div>
+
+> [!IMPORTANT]
+> `open-image` 不内置 API 地址或 API 密钥。首次使用前只需配置 `OPEN_IMAGE_API_KEY` 和 `OPEN_IMAGE_BASE_URL`；密钥不要粘贴到聊天或命令行中。
+
+## 快速开始
+
+| 步骤 | 做什么 | 入口 |
+| --- | --- | --- |
+| **1** | 安装 Skill | [对话安装](#方式一通过对话安装) 或 [命令安装](#方式二使用命令安装) |
+| **2** | 配置 API | [Windows 向导](#windowspowershell-交互式配置) 或 [macOS/Linux 向导](#macosterminal-交互式配置) |
+| **3** | 开始生图 | [Agent 对话](#在-agent-对话中使用) 或 [CLI](#使用-cli) |
+
+<details>
+<summary><strong>最快的命令安装方式</strong></summary>
+
+```bash
+npx skills add "https://github.com/yixixi-yahaha/open-image/tree/v1.0.2/skills/open-image" --global --yes
+```
+
+</details>
+
+## 目录
+
+- [你将配置什么](#你将配置什么)
+- [安装](#安装)
+  - [通过对话安装](#方式一通过对话安装)
+  - [使用命令安装](#方式二使用命令安装)
+- [最直观的首次配置](#最直观的首次配置)
+  - [Windows PowerShell](#windowspowershell-交互式配置)
+  - [macOS/Linux](#macosterminal-交互式配置)
+- [使用方式](#使用方式)
+- [功能和参数](#功能和参数)
+- [结果、回执和重试](#结果回执和重试)
+- [干净卸载](#干净卸载彻底清理)
+- [发布与维护者验证](#发布与维护者验证)
+
+---
 
 ## 你将配置什么
 
