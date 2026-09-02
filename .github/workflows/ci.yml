@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-release-gate:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-latest
+        python-version:
+          - "3.11"
+          - "3.14"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run offline release gate
+        run: |
+          python -m unittest discover -s tests -v
+          python -m unittest discover -v
+          python -m compileall -q skills tests
+          python skills/open-image/scripts/open_image.py --help
+          python skills/open-image/scripts/open_image.py generate --help
+          python skills/open-image/scripts/open_image.py edit --help
+          python skills/open-image/scripts/open_image.py text --help
+          python skills/open-image/scripts/open_image.py batch --help
+          git diff-tree --check --root --no-commit-id -r HEAD
