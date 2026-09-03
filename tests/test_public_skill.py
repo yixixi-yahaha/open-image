@@ -800,7 +800,7 @@ class PackagedSkillTests(unittest.TestCase):
             "Remove-Item Env:OPEN_IMAGE_API_KEY",
             "不要显示密钥",
             "不要删除生成的图片或修改其他环境变量",
-            "完全退出并重新打开 Codex",
+            "完全退出并重新打开当前 Agent",
         ):
             self.assertIn(expected, content)
 
@@ -881,7 +881,7 @@ class PackagedSkillTests(unittest.TestCase):
             "Read-Host",
             "AsSecureString",
             "SetEnvironmentVariable",
-            "完全退出并重新打开 Codex",
+            "完全退出并重新打开当前 Agent",
         ):
             self.assertIn(expected, content)
 
