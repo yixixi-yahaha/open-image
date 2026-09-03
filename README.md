@@ -189,7 +189,7 @@ Copy-Item -Recurse -Force ".\open-image\skills\open-image" "$HOME\.claude\skills
 
 ## 最直观的首次配置
 
-配置的目标是让 Agent 调用脚本时能同时读取：
+配置的目标是让 Agent 调用脚本时能同时读取：(首次配置完成后建议重启计算机)
 
 ```text
 OPEN_IMAGE_API_KEY
