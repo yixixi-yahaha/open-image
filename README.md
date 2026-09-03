@@ -224,7 +224,7 @@ Write-Host "配置完成。请完全退出并重新打开 Agent。"
 3. 保存为当前 Windows 用户环境变量。
 4. 让当前 PowerShell 进程也可以立即使用。
 
-如果你的 Agent 已经在运行，必须完全退出并重新打开它，才能读取新的用户环境变量。
+如果 Agent 在配置环境变量之前启动，即使 Windows 用户环境变量已经写入成功，当前 Agent 进程仍可能看不到它们。必须完全退出 Agent（包括后台进程）后重新打开，不只是新建对话。
 
 验证配置是否存在时只检查变量名，不要输出密钥值：
 
@@ -500,7 +500,7 @@ rm -rf "${HERMES_HOME:-$HOME/.hermes}/skills/open-image"
 unset OPEN_IMAGE_API_KEY OPEN_IMAGE_BASE_URL
 ```
 
-如果你把配置写入了 `~/.zshrc`、`~/.bashrc` 或其他 shell 启动文件，请只删除其中与 `OPEN_IMAGE_API_KEY`、`OPEN_IMAGE_BASE_URL` 对应的行，不要改动其他配置。清理后请完全退出并重新打开 Codex 或其他 Agent。
+如果你把配置写入了 `~/.zshrc`、`~/.bashrc` 或其他 shell 启动文件，请只删除其中与 `OPEN_IMAGE_API_KEY`、`OPEN_IMAGE_BASE_URL` 对应的行，不要改动其他配置。清理后请完全退出并重新打开当前 Agent（Codex、Claude Code、Hermes 或其他 Agent）。
 
 ## 发布与维护者验证
 

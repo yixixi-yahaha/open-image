@@ -32,7 +32,7 @@ metadata:
 - API 地址必须是无用户信息、无查询参数和 Fragment 的 HTTPS 443 地址；允许任意 HTTPS 主机，末尾 `/` 会自动去除。
 - API 根地址不要求包含 `/v1`；客户端在其后拼接 `/images/generations`、`/images/edits` 和任务路径。
 
-不要在聊天中发送 API 密钥。Windows 可使用 `Read-Host -AsSecureString` 写入用户环境变量；配置后完全退出并重新打开 Codex。
+不要在聊天中发送 API 密钥。Windows 可使用 `Read-Host -AsSecureString` 写入用户环境变量；配置后完全退出并重新打开当前 Agent。
 
 PowerShell 配置示例：
 
