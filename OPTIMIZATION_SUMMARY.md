@@ -176,7 +176,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed  # 改进并发�
 等 API 服务恢复后运行：
 
 ```bash
-cd /c/Users/songmajun/Desktop/open-image
+cd <open-image 项目根目录>
 bash test_improvements.sh
 ```
 
