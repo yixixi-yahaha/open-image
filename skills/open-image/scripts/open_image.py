@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import http.client
 import json
 import mimetypes
@@ -17,32 +18,43 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, SimpleQueue
 
 
+# API 默认配置
 DEFAULT_BASE_URL = ""
 DEFAULT_MODEL = "gpt-image-2"
 DEFAULT_SIZE = "auto"
 DEFAULT_QUALITY = "medium"
 ALLOWED_MODELS = {"gpt-image-2"}
 ALLOWED_QUALITIES = {"auto", "high", "low", "medium"}
+
+# 批量和生成限制
+MAX_GENERATION_COUNT = 10
+MAX_BATCH_PROMPT_COUNT = 4
+BATCH_TIMEOUT_SECONDS = 900
+
+# 尺寸和像素约束
 MIN_OUTPUT_PIXELS = 655_360
 MAX_OUTPUT_PIXELS = 8_294_400
 EXPERIMENTAL_OUTPUT_PIXELS = 2560 * 1440
 MAX_OUTPUT_EDGE = 3840
 OUTPUT_EDGE_MULTIPLE = 16
 MAX_OUTPUT_ASPECT_RATIO = 3
+
+# 文件大小限制
 MAX_REFERENCE_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
-MAX_GENERATION_COUNT = 10
-MAX_BATCH_PROMPT_COUNT = 4
 MAX_RESPONSE_BYTES = MAX_IMAGE_BYTES * MAX_GENERATION_COUNT * 4 // 3 + 64 * 1024
+
+# 网络配置
 TIMEOUT_SECONDS = 600
 MAX_TASK_POLL_ATTEMPTS = 60
 TASK_POLL_INTERVAL_SECONDS = 1
+
 RETRYABLE_NETWORK_ERROR_CATEGORIES = {
     "DNS 解析失败",
     "TLS 连接失败",
@@ -51,6 +63,16 @@ RETRYABLE_NETWORK_ERROR_CATEGORIES = {
 }
 RETRY_NOTICE_PREFIX = "RETRY_NOTICE:"
 _RETRY_NOTICES: SimpleQueue[str] = SimpleQueue()
+
+# 图像格式签名
+IMAGE_SIGNATURES = {
+    'PNG': b"\x89PNG\r\n\x1a\n",
+    'JPEG': b"\xff\xd8\xff",
+    'GIF87a': b"GIF87a",
+    'GIF89a': b"GIF89a",
+    'WEBP_RIFF': b"RIFF",
+    'WEBP_MAGIC': b"WEBP",
+}
 
 
 class _RejectRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -364,7 +386,7 @@ def _save_response_item(image: dict[str, object], output_dir: Path, settings: Se
     if isinstance(encoded, str):
         try:
             return _save_png(base64.b64decode(encoded, validate=True), output_dir)
-        except (ValueError, TypeError) as error:
+        except (ValueError, TypeError, binascii.Error) as error:
             raise RuntimeError("图像服务返回的 base64 数据无效。") from error
     url = image.get("url")
     if not isinstance(url, str) or settings is None:
@@ -471,8 +493,20 @@ def _wait_for_task(task_url: str, settings: Settings, output_dir: Path) -> list[
 
 
 def _is_supported_image(path: Path) -> bool:
-    signature = path.read_bytes()[:12]
-    return signature.startswith(b"\x89PNG\r\n\x1a\n") or signature.startswith(b"\xff\xd8\xff") or signature.startswith((b"GIF87a", b"GIF89a")) or (signature.startswith(b"RIFF") and signature[8:12] == b"WEBP")
+    """检查文件是否为支持的图像格式 (PNG/JPEG/GIF/WebP)。"""
+    try:
+        signature = path.read_bytes()[:12]
+    except (OSError, IOError):
+        return False
+
+    return (
+        signature.startswith(IMAGE_SIGNATURES['PNG']) or
+        signature.startswith(IMAGE_SIGNATURES['JPEG']) or
+        signature.startswith(IMAGE_SIGNATURES['GIF87a']) or
+        signature.startswith(IMAGE_SIGNATURES['GIF89a']) or
+        (signature.startswith(IMAGE_SIGNATURES['WEBP_RIFF']) and
+         signature[8:12] == IMAGE_SIGNATURES['WEBP_MAGIC'])
+    )
 
 
 def build_edit_request(
@@ -495,8 +529,12 @@ def build_edit_request(
     for path in references:
         if not path.is_absolute() or not path.is_file():
             raise ValueError(f"参考图必须是存在的绝对路径: {path}")
-        if path.stat().st_size > MAX_REFERENCE_BYTES or not _is_supported_image(path):
-            raise ValueError(f"参考图格式不支持或文件过大: {path}")
+        # 先检查文件大小,避免读取过大文件
+        file_size = path.stat().st_size
+        if file_size > MAX_REFERENCE_BYTES:
+            raise ValueError(f"参考图文件过大 ({file_size} 字节,上限 {MAX_REFERENCE_BYTES}): {path}")
+        if not _is_supported_image(path):
+            raise ValueError(f"参考图格式不支持: {path}")
         mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         chunks.extend([f"--{boundary}\r\n".encode(), f'Content-Disposition: form-data; name="image[]"; filename="{path.name}"\r\n'.encode(), f"Content-Type: {mime}\r\n\r\n".encode(), path.read_bytes(), b"\r\n"])
     chunks.append(f"--{boundary}--\r\n".encode())
@@ -558,21 +596,36 @@ def generate_batch(
     if any(not isinstance(prompt, str) or not prompt.strip() for prompt in prompts):
         raise ValueError("批量提示词不能为空。")
 
-    def run(prompt: str) -> BatchItemResult:
+    print(f"开始批量生成 {len(prompts)} 张图片...", file=sys.stderr)
+
+    def run(index: int, prompt: str) -> BatchItemResult:
         try:
+            print(f"[{index}/{len(prompts)}] 生成中...", file=sys.stderr)
             if base_url is None:
                 paths = generate(prompt, model, size, quality, 1, output_dir)
             else:
                 paths = generate(prompt, model, size, quality, 1, output_dir, base_url)
             if not paths:
                 return BatchItemResult(error="图像服务未返回图片。")
+            print(f"[{index}/{len(prompts)}] 完成: {paths[0].name}", file=sys.stderr)
             return BatchItemResult(path=paths[0])
         except (OSError, RuntimeError, ValueError) as error:
+            print(f"[{index}/{len(prompts)}] 失败: {error}", file=sys.stderr)
             return BatchItemResult(error=str(error))
 
     with ThreadPoolExecutor(max_workers=len(prompts)) as executor:
-        futures = [executor.submit(run, prompt) for prompt in prompts]
-        return [future.result() for future in futures]
+        futures = {executor.submit(run, i + 1, prompt): i for i, prompt in enumerate(prompts)}
+        results: list[BatchItemResult | None] = [None] * len(prompts)
+        try:
+            for future in as_completed(futures, timeout=BATCH_TIMEOUT_SECONDS):
+                index = futures[future]
+                results[index] = future.result()
+        except TimeoutError:
+            for future, index in futures.items():
+                if results[index] is None and not future.done():
+                    future.cancel()
+                    results[index] = BatchItemResult(error="批次项超时未完成，已停止等待；生成状态未知，未自动重试。")
+        return [result if result is not None else BatchItemResult(error="批次项未返回结果。") for result in results]
 
 
 def _parser() -> argparse.ArgumentParser:
